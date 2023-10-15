@@ -9,6 +9,8 @@ FPS = pygame.time.Clock()
 
 HEIGHT = 800
 WIDTH = 1200
+HEIGHT_5_PERCENT = HEIGHT // 20
+WIDTH_5_PERCENT = WIDTH // 20
 COLOR_WHITE = (255, 255, 255)
 COLOR_BLACK = (0, 0, 0)
 COLOR_BLUE = (0, 0, 255)
@@ -34,7 +36,7 @@ bg_move = 3
 font = pygame.font.SysFont('arial', 20)
 
 player = pygame.image.load(IMAGE_PLAYER_PATH).convert_alpha()
-player_rect = player.get_rect()
+player_rect = pygame.Rect(20, HEIGHT//2, player.get_rect().width, player.get_rect().height)
 
 player_move_down = [0, 4]
 player_move_right = [4, 0]
@@ -50,7 +52,7 @@ image_index = 0
 def create_enemy():
     enemy = pygame.image.load(IMAGE_ENEMY_PATH).convert_alpha()
     enemy_size = [enemy.get_rect().width, enemy.get_rect().height]
-    enemy_rect = pygame.Rect(WIDTH, random.randint(0, HEIGHT), *enemy_size)
+    enemy_rect = pygame.Rect(WIDTH, random.randint(HEIGHT_5_PERCENT, HEIGHT - HEIGHT_5_PERCENT), *enemy_size)
     enemy_move = [random.randint(-8, -4), 0]
     return [enemy, enemy_rect, enemy_move]
 
@@ -60,7 +62,8 @@ def create_enemy():
 def create_bonus():
     bonus = pygame.image.load(IMAGE_BONUS_PATH).convert_alpha()
     bonus_size = [bonus.get_rect().width, bonus.get_rect().height]
-    bonus_rect = pygame.Rect(random.randint(0, WIDTH - bonus.get_rect().width), 0, *bonus_size)
+    rand_max_width_x =WIDTH - bonus.get_rect().width - WIDTH_5_PERCENT
+    bonus_rect = pygame.Rect(random.randint(WIDTH_5_PERCENT, rand_max_width_x), -bonus.get_rect().height, *bonus_size)
     bonus_move = [0, random.randint(4, 8)]
     return [bonus, bonus_rect, bonus_move]
 
@@ -127,6 +130,8 @@ while playing:
     if keys[K_LEFT] and player_rect.left > 0:
         player_rect = player_rect.move(player_move_left)
 
+    main_display.blit(player, player_rect)
+
     for enemy in enemies:
         enemy[1] = enemy[1].move(enemy[2])
         main_display.blit(enemy[0], enemy[1])
@@ -135,18 +140,16 @@ while playing:
         bonus[1] = bonus[1].move(bonus[2])
         main_display.blit(bonus[0], bonus[1])
 
-    main_display.blit(player, player_rect)
-
     pygame.display.flip()
 
     for enemy in enemies:
-        if enemy[1].left < 0:
+        if enemy[1].right < 0:
             enemies.pop(enemies.index(enemy))
         if player_rect.colliderect(enemy[1]):
             playing = False
 
     for bonus in bonuses:
-        if bonus[1].bottom > HEIGHT:
+        if bonus[1].top > HEIGHT:
             bonuses.pop(bonuses.index(bonus))
         if player_rect.colliderect(bonus[1]):
             score += 1
